@@ -1,0 +1,174 @@
+optimized: 
+  learning_rate_exp: 
+    - float
+    - -3.53
+    - -3.52
+  denoising_option:
+    - categorical
+    - [1]
+
+data:
+  path: Datasets
+  dataset: mnist
+  task: diffusion
+  scaler: "01"
+  shuffle_train: True
+  batch_size: 12
+    
+study:  
+  number_of_trials: 2
+  direction: minimize
+  optimization_target: TestLoss
+  study_name: Latent_Diffusion # Denoising_Diffusion for ddpm, Condtional_Denoising_Diffusion for cddpm,
+  # Latent_Diffusion for latent_dm and Conditional_Latent_Diffusion for conditional_latent_dm
+  
+learning:
+  num_epochs: 30
+  testevery: 1
+  optimizer: Adam
+  criterion: MSELoss
+  diffusion_model: 'cddpm' # 'ddpm', 'cddpm', 'latent_dm' or 'conditional_latent_dm' only
+  noise_prediction_model: 'unet_latent' # 'unet', 'unet_latent', 'conditional_unet', or 'conditional_unet_latent' only
+  layer: 'nlrl' # 'linear' or 'nlrl' only.
+  n_steps: 1000
+  
+network:
+  unet:
+    name: "UNet"
+    time_emb_dim: 100
+    in_channels: 3
+    activation_function: SiLU
+    hidden_channels: 10
+
+  conditional_unet:
+    name: "Conditional_UNet"
+    time_emb_dim: 100
+    label_emb_dim: 100 
+    num_classes: 10
+    in_channels: 3
+    hidden_channels: 60 # Initial out_channels
+    activation_function: SiLU
+    num_layers: 2
+    block_layers: 2 #should be always 2 and above
+    
+  unet_latent:
+    name: "UNet_Latent"
+    time_emb_dim: 100
+    in_channels: 120
+    hidden_channels: 240 # Initial out_channels
+    activation_function: SiLU
+    # num_layers: 1
+    # block_layers: 2
+
+  conditional_unet_latent:
+    name: "Conditional_UNet_Latent"
+    time_emb_dim: 100
+    label_emb_dim: 10
+    num_classes: 10
+    in_channels: 40
+    hidden_channels: 80 # Initial out_channels
+    activation_function: SiLU
+    num_layers: 3
+    block_layers: 3
+    
+  en_de:
+    name: "Encoder_Decoder"
+    time_emb_dim: 100
+    in_channels: 1
+    hidden_channels: 10 # Initial out_channels
+    activation_function: SiLU
+    num_layers: 3
+    block_layers: 3
+
+  conditional_en_de:
+    name: "Conditional_Encoder_Decoder"
+    time_emb_dim: 100
+    label_emb_dim: 100 
+    num_classes: 10
+    in_channels: 1
+    hidden_channels: 10 # Initial out_channels
+    activation_function: SiLU
+    num_layers: 3
+    block_layers: 3
+    
+  en_de_latent:
+    name: "Encoder_Decoder_Latent"
+    time_emb_dim: 100
+    in_channels: 1
+    hidden_channels: 10 # Initial out_channels
+    activation_function: SiLU
+    num_layers: 3
+    block_layers: 3
+
+  conditional_en_de_latent:
+    name: "Conditional_Encoder_Decoder_Latent"
+    time_emb_dim: 100
+    label_emb_dim: 100 
+    num_classes: 10
+    in_channels: 1
+    hidden_channels: 10 # Initial out_channels
+    activation_function: SiLU
+    num_layers: 3
+    block_layers: 3
+
+diffusion:
+  ddpm:
+    min_beta: 0.0001
+    max_beta: 0.02
+    image_chw: (1, 32, 32)
+    
+  latent:
+    min_beta: 0.0001
+    max_beta: 0.02
+    image_chw: (1, 32, 32)
+    denoiser: "Simple_en_de"
+    in_channels: 3
+    hidden_channels: 60
+  
+classifier_nlrl: # make no changes
+  filter_growth_rate: 2
+  dropout_rate: 0.2
+  final_channel: 8
+  activation_function: RReLU
+  initial_out_channels: 32
+  final_layer: 'nlrl'
+  num_blocks: 3
+
+classifier_linear: # make no changes
+  filter_growth_rate: 2
+  dropout_rate: 0.2
+  final_channel: 8
+  activation_function: RReLU
+  initial_out_channels: 32
+  final_layer: 'linear' # only 'linear', or 'nlrl'.
+  num_blocks: 3
+
+discriminator_nlrl: # make no changes
+  name: "GAN" # GAN for ddpm and CGAN for cddpm
+  hidden_channels: 64
+  noise_dim: 10
+  final_layer: 'nlrl'
+
+discriminator_linear: # make no changes
+  name: "GAN" # GAN for ddpm and CGAN for cddpm
+  hidden_channels: 64
+  noise_dim: 10 
+  final_layer: 'linear'
+
+trained_en_de: # make no changes
+  name: "Encoder_Decoder"
+  in_channels: 3
+  hidden_channels: 60
+  activation_function: SiLU
+  num_layers: 2
+  block_layers: 2
+
+trained_conditional_en_de: # make no changes
+  name: "Conditional_Encoder_Decoder"
+  in_channels: 3
+  hidden_channels: 60
+  activation_function: SiLU
+  num_layers: 2
+  block_layers: 2
+  label_emb_dim: 100
+  num_classes: 10
